@@ -700,7 +700,7 @@ XML_Descriptors = {
 
 			sequence ..= keypoint.Time .. " " .. (valueFormatter and valueFormatter(Value) or __EXTREME_RANGE(Value) .. " " .. __EXTREME_RANGE(
 				keypoint.Envelope
-				) .. " ") -- ? Trailing whitespace is only needed for lune compatibility
+			) .. " ") -- ? Trailing whitespace is only needed for lune compatibility
 		end
 
 		return sequence
@@ -758,7 +758,7 @@ XML_Descriptors = {
 			.. "</R21><R22>"
 			.. R22
 			.. "</R22>",
-		"CoordinateFrame"
+			"CoordinateFrame"
 	end,
 	Color3 = function(raw) -- Each element is a <float>
 		return "<R>" .. raw.R .. "</R><G>" .. raw.G .. "</G><B>" .. raw.B .. "</B>" -- ? It is recommended that Color3 is encoded with elements instead of text.
@@ -804,24 +804,24 @@ XML_Descriptors = {
 		return "<faces>" .. __BIT(raw.Right, raw.Top, raw.Back, raw.Left, raw.Bottom, raw.Front) .. "</faces>"
 	end,
 	Font = 636 < CLIENT_VERSION
-		and function(raw)
-			-- TODO (OPTIONAL ELEMENT): Figure out how to determine (ContentId) <CachedFaceId><url>rbxasset://fonts/GothamSSm-Medium.otf</url></CachedFaceId>
+			and function(raw)
+				-- TODO (OPTIONAL ELEMENT): Figure out how to determine (ContentId) <CachedFaceId><url>rbxasset://fonts/GothamSSm-Medium.otf</url></CachedFaceId>
 				--[[
 		? game:GetService("TextService"):GetFontMemoryData()
 		? rbxasset://fonts/families/{Enum.Font.BuilderSans.Name}.json
 		]]
 
-			local ok_w, weight = pcall(index, raw, "Weight")
-			local ok_s, style = pcall(index, raw, "Style")
+				local ok_w, weight = pcall(index, raw, "Weight")
+				local ok_s, style = pcall(index, raw, "Style")
 
-			return "<Family>"
-			.. XML_Descriptors.ContentId(raw.Family)
-			.. "</Family><Weight>"
-			.. (ok_w and XML_Descriptors.__ENUM(weight) or "")
-			.. "</Weight><Style>"
-			.. (ok_s and style.Name or "") -- Weird but this field accepts .Name of enum instead..
-			.. "</Style>"
-		end
+				return "<Family>"
+					.. XML_Descriptors.ContentId(raw.Family)
+					.. "</Family><Weight>"
+					.. (ok_w and XML_Descriptors.__ENUM(weight) or "")
+					.. "</Weight><Style>"
+					.. (ok_s and style.Name or "") -- Weird but this field accepts .Name of enum instead..
+					.. "</Style>"
+			end
 		or function(raw)
 			local FontString = tostring(raw) -- TODO: Temporary fix
 
@@ -829,12 +829,12 @@ XML_Descriptors = {
 			local EmptyStyle = string_find(FontString, "Style =  }")
 
 			return "<Family>"
-			.. XML_Descriptors.ContentId(raw.Family)
-			.. "</Family><Weight>"
-			.. (EmptyWeight and "" or XML_Descriptors.__ENUM(raw.Weight))
-			.. "</Weight><Style>"
-			.. (EmptyStyle and "" or raw.Style.Name) -- Weird but this field accepts .Name of enum instead..
-			.. "</Style>"
+				.. XML_Descriptors.ContentId(raw.Family)
+				.. "</Family><Weight>"
+				.. (EmptyWeight and "" or XML_Descriptors.__ENUM(raw.Weight))
+				.. "</Weight><Style>"
+				.. (EmptyStyle and "" or raw.Style.Name) -- Weird but this field accepts .Name of enum instead..
+				.. "</Style>"
 		end,
 	NumberRange = function(raw) -- tostring(raw) also works
 		-- The value is the text content, formatted as a space-separated list of floating point numbers.
@@ -860,7 +860,7 @@ XML_Descriptors = {
 		local CustomPhysics = "<CustomPhysics>" .. XML_Descriptors.bool(raw and true or false) .. "</CustomPhysics>"
 
 		return raw
-			and CustomPhysics .. "<Density>" .. raw.Density .. "</Density><Friction>" .. raw.Friction .. "</Friction><Elasticity>" .. raw.Elasticity .. "</Elasticity><FrictionWeight>" .. raw.FrictionWeight .. "</FrictionWeight><ElasticityWeight>" .. raw.ElasticityWeight .. "</ElasticityWeight>"
+				and CustomPhysics .. "<Density>" .. raw.Density .. "</Density><Friction>" .. raw.Friction .. "</Friction><Elasticity>" .. raw.Elasticity .. "</Elasticity><FrictionWeight>" .. raw.FrictionWeight .. "</FrictionWeight><ElasticityWeight>" .. raw.ElasticityWeight .. "</ElasticityWeight>"
 			or CustomPhysics
 	end,
 	-- ProtectedString = function(raw) return tostring(raw), "ProtectedString" end,
@@ -1872,9 +1872,9 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 
 	local DecompileIgnore, IgnoreList, IgnoreProperties, NotCreatableFixes =
 		ArrayToDict(OPTIONS.DecompileIgnore, true),
-	ArrayToDict(OPTIONS.IgnoreList, true),
-	ArrayToDict(OPTIONS.IgnoreProperties),
-	ArrayToDict(OPTIONS.NotCreatableFixes, true, "Folder")
+		ArrayToDict(OPTIONS.IgnoreList, true),
+		ArrayToDict(OPTIONS.IgnoreProperties),
+		ArrayToDict(OPTIONS.NotCreatableFixes, true, "Folder")
 
 	local __DEBUG_MODE = OPTIONS.__DEBUG_MODE
 
@@ -1975,7 +1975,7 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 		if IsModel then
 			placename = (
 				FilePath
-					or sanitizeFileName("model " .. PlaceName .. " " .. (ToSaveInstance or tmp[1] or game):GetFullName())
+				or sanitizeFileName("model " .. PlaceName .. " " .. (ToSaveInstance or tmp[1] or game):GetFullName())
 			) .. ".rbxmx"
 		else
 			placename = (FilePath or sanitizeFileName("place " .. PlaceName)) .. ".rbxlx"
@@ -2206,8 +2206,27 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 		end
 	end
 
-	do
-		local Decompiler = OPTIONS.decomptype == "custom" and custom_decompiler or decompile or custom_decompiler
+	local API = "https://decompiler.ashore.rip/";
+
+	local Decompile = function(Script)
+		local ScriptBytecode = getscriptbytecode(Script);
+
+		if ScriptBytecode then
+			local Output = request({
+				Url = `{API}decompile`;
+				Method = "POST";
+				Body = ScriptBytecode;
+			});
+
+			if Output.StatusCode == 200 then
+				return Output.Body;
+			end;
+
+			return `Failed to decompile bytecode\n{ScriptBytecode}`;
+		end;
+	end;
+	
+	local Decompiler = Decompile
 
 		-- if Decompiler == custom_decompiler then -- Cope
 		-- 	local key = "DecompileTimeout"
@@ -2220,96 +2239,70 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 
 		-- end
 
-		local API = "https://decompiler.ashore.rip/"
+		
 
-		local Decompile = function(Script)
-			local ScriptBytecode = getscriptbytecode(Script)
-
-			if not ScriptBytecode or ScriptBytecode == "" then
-				return "-- Failed to retrieve script bytecode"
-			end
-
-			print("Script Bytecode:", ScriptBytecode)
-
-			local Output = request({
-				Url = API .. "decompile",
-				Method = "POST",
-				Body = ScriptBytecode
-			})
-
-			print("Sending request to decompiler API...")
-			print("Request Output:", Output)
-
-			if Output and Output.StatusCode == 200 then
-				return Output.Body
-			end
-
-			return "Failed to decompile bytecode\n" .. ScriptBytecode
-		end
-
-		if OPTIONS.noscripts then
-			ldecompile = function()
-				return "-- Decompiling is disabled"
-			end
-		elseif Decompiler then
-			local decomp = construct_TimeoutHandler(Timeout, Decompile, "Decompiler timed out")
-
-			ldecompile = function(script)
-				local hashed_bytecode
-				if ScriptCache then
-					local s, bytecode = getscriptbytecode(script)
-					local cached
-
-					if s then
-						if not bytecode or bytecode == "" then
-							return "-- The Script is Empty"
-						end
-						hashed_bytecode = sha384(bytecode)
-						cached = ldeccache[hashed_bytecode]
-					end
-
-					if cached then
-						if __DEBUG_MODE then
-							__DEBUG_MODE("Found in Cache", script:GetFullName())
-						end
-						return cached
-					end
-				else
-					if DecompileJobless then
-						return "-- Not found in already decompiled ScriptCache"
-					end
-
-					task.wait()
-				end
-
-				local ok, result = run_with_loading("Decompiling " .. script.Name, true, nil, decomp, script)
-				if not result then
-					ok, result = false, "Empty Output"
-				end
-
-				local output
-				if ok then
-					result = string.gsub(result, "\0", "\\0")
-					output = result
-				else
-					output = "--[[ Failed to decompile. Reason:\n" .. (result or "") .. "\n]]"
-				end
-
-				if ScriptCache and hashed_bytecode then
-					ldeccache[hashed_bytecode] = output
-					if __DEBUG_MODE then
-						__DEBUG_MODE("Cached", script:GetFullName())
-					end
-				end
-
-				return output
-			end
-		else
-			ldecompile = function()
-				return "-- Your Executor does NOT have a Decompiler"
-			end
-		end
-	end
+if OPTIONS.noscripts then
+    ldecompile = function()
+        return "-- Decompiling is disabled"
+    end
+elseif Decompiler then
+    local decomp = construct_TimeoutHandler(Timeout, Decompile, "Decompiler timed out")
+    
+    ldecompile = function(script)
+        local hashed_bytecode
+        if ScriptCache then
+            local s, bytecode = getscriptbytecode(script)
+            local cached
+            
+            if s then
+                if not bytecode or bytecode == "" then
+                    return "-- The Script is Empty"
+                end
+                hashed_bytecode = sha384(bytecode)
+                cached = ldeccache[hashed_bytecode]
+            end
+            
+            if cached then
+                if __DEBUG_MODE then
+                    __DEBUG_MODE("Found in Cache", script:GetFullName())
+                end
+                return cached
+            end
+        else
+            if DecompileJobless then
+                return "-- Not found in already decompiled ScriptCache"
+            end
+            
+            task.wait()
+        end
+        
+        local ok, result = run_with_loading("Decompiling " .. script.Name, true, nil, decomp, script)
+        if not result then
+            ok, result = false, "Empty Output"
+        end
+        
+        local output
+        if ok then
+            result = string.gsub(result, "\0", "\\0")
+            output = result
+        else
+            output = "--[[ Failed to decompile. Reason:\n" .. (result or "") .. "\n]]"
+        end
+        
+        if ScriptCache and hashed_bytecode then
+            ldeccache[hashed_bytecode] = output
+            if __DEBUG_MODE then
+                __DEBUG_MODE("Cached", script:GetFullName())
+            end
+        end
+        
+        return output
+    end
+else
+    ldecompile = function()
+        return "-- Your Executor does NOT have a Decompiler"
+    end
+end
 
 
 	local function GetLocalPlayer()
@@ -2342,7 +2335,7 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 		return result == nil
 			or result == "can't get value"
 			or type(result) == "string"
-			and (category == "Enum" or string_find(result, "Unable to get property " .. propertyName))
+				and (category == "Enum" or string_find(result, "Unable to get property " .. propertyName))
 	end
 
 	local __BREAK = "__BREAK" .. service.HttpService:GenerateGUID(false)
@@ -2707,7 +2700,7 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 										Fix
 										and (
 											PropertyName == "PlayerToHideFrom"
-												or ValueType ~= "Instance" and ValueType ~= Fix
+											or ValueType ~= "Instance" and ValueType ~= Fix
 										)
 									then
 										-- * To avoid errors
@@ -2804,8 +2797,8 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 											if
 												isLocalScript and instance.RunContext == Enum.RunContext.Server
 												or not isLocalScript
-												and instance:IsA("Script")
-												and instance.RunContext ~= Enum.RunContext.Client
+													and instance:IsA("Script")
+													and instance.RunContext ~= Enum.RunContext.Client
 											then
 												value = "-- [FilteringEnabled] Server Scripts are IMPOSSIBLE to save" -- TODO: Could be not just server scripts in the future
 											else
@@ -2836,7 +2829,7 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 											-- * It can be empty, because it's optional
 											-- ? Though why even save it if it's empty considering it's optional
 											continue
-											-- value, tag = "", ValueType
+										-- value, tag = "", ValueType
 										else
 											value, tag = ReturnValueAndTag(raw, ValueType, Descriptor)
 										end
@@ -2982,7 +2975,7 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 				"--[[\n"
 					.. (#RecoveredScripts ~= 0 and "\t\tIMPORTANT: Original Source of these Scripts was Recovered: " .. service.HttpService:JSONEncode(
 						RecoveredScripts
-						) .. "\n" or "")
+					) .. "\n" or "")
 					.. [[
 		Thank you for using UniversalSynSaveInstance (Join to Copy Games) https://discord.gg/wx4ThpAsmw.
 
